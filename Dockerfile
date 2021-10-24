@@ -24,10 +24,13 @@ RUN apt-get update && apt-get install -y mongodb-org
 
 RUN mkdir -p /data/db
 VOLUME /data/db /data/configdb
-COPY mysetup.js /docker-entrypoint-initdb.d/
-# Expose a porta #27017 do container para o host
-EXPOSE 27017
 
+
+COPY entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["entrypoint.sh"]
 
 # Define o /usr/bin/mongod como um dockerized entry-point application
-ENTRYPOINT ["/usr/bin/mongod"]
+# ENTRYPOINT ["/usr/bin/mongod"]
+
+# Expose a porta #27017 do container para o host
+EXPOSE 27017

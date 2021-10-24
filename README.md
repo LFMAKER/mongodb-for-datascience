@@ -263,4 +263,3 @@ Abra seu Compass e se conecte ao seu localhost na porta 27017, feito isso, terá
 
 
 ![image info](./images/compass.png)# mongodb-for-datascience
-# mongodb-for-datascience

@@ -9,6 +9,13 @@ RUN apt-get update \
     gnupg2 \
     ca-certificates
 
+# Instala o gosu, necesário para executar o entrypoint
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y gosu; \
+	rm -rf /var/lib/apt/lists/*; \
+	gosu nobody true
+
 # Importa o MongoDb public GPG key
 # A public key pode ser encontrada de acordo com a versão em http://keyserver.ubuntu.com/pks/lookup?search=mongodb&fingerprint=on&op=index
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv f5679a222c647c87527c2f8cb00a0bd1e2c63c11
@@ -25,9 +32,13 @@ RUN apt-get update && apt-get install -y mongodb-org
 RUN mkdir -p /data/db
 VOLUME /data/db /data/configdb
 
+COPY datasets /usr/local/bin/datasets
+COPY init.sh /docker-entrypoint-initdb.d/
 
-COPY entrypoint.sh /usr/local/bin/
-ENTRYPOINT ["entrypoint.sh"]
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod 777 /usr/local/bin/docker-entrypoint.sh \
+    && ln -s /usr/local/bin/docker-entrypoint.sh /
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Define o /usr/bin/mongod como um dockerized entry-point application
 # ENTRYPOINT ["/usr/bin/mongod"]

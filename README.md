@@ -263,6 +263,8 @@ Abra seu Compass e se conecte ao seu localhost na porta 27017, feito isso, terá
 # Gerando a imagem e executando o container de forma rápida usando o REPO
 
 ```
+git clone git clone https://github.com/LFMAKER/mongodb-for-datascience
+cd mongodb-for-datascience
 docker build -t mongo-teste .
 docker run -p 27017:27017 -i -t mongo-teste --bind_ip_all
 ```

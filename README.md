@@ -258,7 +258,7 @@ Feito isso, comando executado, temos nosso mongodb sendo executado na porta 2701
 
 Abra seu Compass e se conecte ao seu localhost na porta 27017, feito isso, terá acesso ao seu banco de dados, com sua coleção de Datasets já populadas.
 
-![image info](./images/compass.png)# mongodb-for-datascience
+![image info](./images/compass.png)
 
 # Gerando a imagem e executando o container de forma rápida usando o REPO
 

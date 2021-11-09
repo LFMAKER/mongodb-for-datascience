@@ -1,5 +1,3 @@
-
-
 # Conhecendo uma imagem
 
 As imagens podem ser oficiais ou não oficiais.
@@ -11,7 +9,6 @@ As imagens oficiais são mantidas pela empresa docker e disponibilizadas na nuve
 O objetivo das imagens oficiais é prover um ambiente básico (ex. debian, alpine, ruby, python), um ponto de partida para criação de imagens pelos usuários, como explicaremos mais adiante, ainda nesse capítulo.
 
 As imagens não oficiais são mantidas pelos usuários que as criaram. Falaremos sobre envio de imagens para nuvem docker em outro tópico.
-
 
 Nome da imagem
 
@@ -29,6 +26,7 @@ docker image list
 ```
 
 # Como criar uma imagem com Dockerfile
+
 Quando se utiliza Dockerfile para gerar uma imagem, basicamente, é apresentada uma lista de instruções que serão aplicadas em determinada imagem para que outra imagem seja gerada com base nas modificações.
 
 ![image info](./images/dockerfile.png)
@@ -38,7 +36,6 @@ Podemos resumir que o arquivo Dockerfile, na verdade, representa a exata diferen
 Voltemos ao exemplo da criação de uma imagem com mongodb com dados iniciais já populados no banco de dados.
 
 Crie um arquivo chamado Dockerfile e dentro dele o seguinte conteúdo:
-
 
 ```
 FROM ubuntu:20.04
@@ -61,26 +58,24 @@ CMD para informar qual comando será executado por padrão, caso nenhum seja inf
 
 Criei uma Dockerfile nova e adicionar o seguinte conteúdo
 
-
-
 ```
 FROM ubuntu:20.04
 
 ```
-#### Instalando dependências
-Agora, vamos instalar as dependências necessárias para executar os próximos comandos e baixar o pacote do mongodb
 
+#### Instalando dependências
+
+Agora, vamos instalar as dependências necessárias para executar os próximos comandos e baixar o pacote do mongodb
 
 ```
 RUN apt-get update \
-    && apt-get install -y \ 
+    && apt-get install -y \
     gnupg2 \
     ca-certificates
 
 ```
 
 Feito isso, já podemos executar nossos comandos, agora vamos instalar o gosu, um pacote necessário para executarmos nosso entrypoint que nos ajudará a manipular configurações feitas ao iniciar o nosso container.
-
 
 ```
 RUN set -eux; \
@@ -100,9 +95,7 @@ A key pode sempre ser encontrada sempre no site do http://keyserver.ubuntu.com, 
 
 Nesse caso, nossa pesquisa foi no http://keyserver.ubuntu.com/pks/lookup?search=mongodb&fingerprint=on&op=index
 
-
 Ok, entendemos como funciona, agora é a hora de utilizar o comando que definirá essa key no nosso sistema base.
-
 
 ```
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv f5679a222c647c87527c2f8cb00a0bd1e2c63c11
@@ -115,8 +108,6 @@ O processo de instalação do mongodb já está pronto para iniciar pois instala
 
 Agora iremos adicionar o arquivo de sources no sistema, com ele definidio no sistema ao solicitar uma instalação do mongodb, o sistema saberá onde procurar os arquivos de instalação, para isso:
 
-
-
 ```
 RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
 
@@ -125,6 +116,7 @@ RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mon
 Feito isso, só precisamos instalar o pacote do mongodb
 
 #### Instalando o MongoDb
+
 Agora podemos instalar o pacote do mongodb, para isso utilizaremos o comando abaixo:
 
 ```
@@ -136,22 +128,26 @@ Agora temos o mongoDB instalado, todavia precisamos configurar a inicialização
 #### Definindo a pasta de dados e volume
 
 Para isso iremos criar novas pastas no sistema e definir um volume
+
 ```
 RUN mkdir -p /data/db
 VOLUME /data/db /data/configdb
 ```
- Agora o mongodb já possui seus volumes e pasta de dados definidos.
+
+Agora o mongodb já possui seus volumes e pasta de dados definidos.
 
 #### Populando o banco de dados
+
 Sempre que o container inicia com nosos serviço do mongodb, podemos já trazer o banco populado com os dados, para isso iremos criar uma pasta no mesmo local da Dockerfile para armazenar os csv que desejamos popular, nesse exemplo para fácil compreendimento utilizaremos csv pois já temos todas estruturas bem definidas, todavia poderiamos chamar o mongodb e inserir manualmente.
 
 Criamos uma pasta chamada datasets, nessa pasta armazenamos alguns csv que gostariamos de que sejam populados no nosso banco de dados.
 
 ###### Criando o Script para popular
+
 Agora é a hora de criar o script que irá popular nosso banco de dados, no caso do uso de csv, firá como abaixo:
 
 ```
-#! /bin/sh 
+#! /bin/sh
 cd /usr/local/bin/datasets
 datasets=`ls *.csv`
 for eachfile in $datasets
@@ -164,7 +160,6 @@ O script abaixo pega todos os csv e utiliza o comando mongoimport para criar uma
 
 Todavia, até o momento só temos o script acessando a pasta datasets de um local estranho...
 Isso acontece pois teremos que copiar nossos csvs e esse script de inciialização para dentro do sistema base, no nosso caso, o Ubuntu.
-
 
 ###### Copiando nossos Datasets e Script de populate para o sistema base
 
@@ -180,7 +175,8 @@ O primeiro comando COPY irá copiar nossa pasta dataset do projeto para dentro d
 Já o segundo comando COPY irá copiar nosso script de populate para dentro do sistema base, especificamente na pasta /docker-entrypoint-initdb.d/, essa pasta é uma padrão do docker, que ele utiliza para inicialização de banco de dados, basicamente tudo que tivermos ai, será executado com a intenção que será populato o banco de dados no momento da inicialização do container.
 
 ###### Criando um entrypoint
-Um entrypoint é o comando principal de uma dockerfile, ele é o  primeiro comando que será executando sempre que iniciar um container com essa imagem após toda a dockerfile ter sido executada.
+
+Um entrypoint é o comando principal de uma dockerfile, ele é o primeiro comando que será executando sempre que iniciar um container com essa imagem após toda a dockerfile ter sido executada.
 
 Por que precisamos disso?
 Muitas vezes, quando iniciamos nosso container, queremos realizar algumas verificações para garantir uma boa saúde do nosso container.
@@ -205,6 +201,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 - O terceiro, o ENTRYPOINT, define qual será o script que será considerado como entrypoint do container, no caso será o que estamos configurando, o docker-entrypoint.sh
 
 #### Expondo o container em uma porta
+
 Precisamos que esse container seja acessível por uma porta, nesse caso é um EXPOSE interno do docker apenas, isso não garante que será acessado pelo HOST por essa porta, para isso precisará definir no momento do run, qual porta do run corresponde a porta do container.
 
 Para isso, usaremos a porta padrão do MongoDb, a 27017 com o comando EXPOSE
@@ -214,8 +211,10 @@ EXPOSE 27017
 ```
 
 # Gerando nossa imagem após ter uma Dockerfile
+
 Para constuir uma imagem nova baseada em uma Dockerfile existe, para ir no caminho que se encontra essa dockerfile e executar o comando abaixo no terminal:
-*Em alguns sistemas operacionais, será necessário o sudo.
+\*Em alguns sistemas operacionais, será necessário o sudo.
+
 ```
 docker build -t mongo-teste .
 ```
@@ -223,7 +222,6 @@ docker build -t mongo-teste .
 Esse comando, irá gerar uma imagem chamada mongo-teste, construida com base na nossa Dockerfile.
 
 Após executar o comando, poderá executar o comando abaixo para verificar suas imagens disponíveis no docker.
-
 
 ```
 docker image list
@@ -237,23 +235,22 @@ REPOSITORY    TAG       IMAGE ID       CREATED             SIZE
 mongo-teste   latest    b820cc64a470   10 seconds ago   780MB
 ```
 
-
 # Criando um container atráves de uma imagem disponível
 
 Agora, temos nossa imagem disponível e podemos criar infinitos containers atráves dela, com isso vamos criar um container para demonstrar a disponibilização do container para o acesso de seu computador host.
 
 Para isso, executa o comando abaixo:
-*Em alguns sistemas operacionais, será necessário o sudo.
+\*Em alguns sistemas operacionais, será necessário o sudo.
 
 ```
 docker run -p 27017:27017 -i -t mongo-teste --bind_ip_all
 ```
 
 o docker run é um comando para criarmos novos containers, nele podemos passar alguns argumentos, nesse caso usamos:
+
 - -p: usado para especificar qual porta do local host será mapeada com uma porta com expose no container, no nosso caso usamos o EXPOSE na porta 27017 e queremos que o computador host, externo a rede docker, o acesse por essa mesma porta.
 - -t: especifica qual o nome da imagem que usaremos para criar esse container, nesse caso, no tópico anterior criamos a imagem mongo-test
 - --bind_ip_all: Usamos esse comando para mapeadas todos os ips locais do host e deixar o container disponível para seu acesso.
-
 
 Feito isso, comando executado, temos nosso mongodb sendo executado na porta 27017 do seu localhost.
 
@@ -261,5 +258,18 @@ Feito isso, comando executado, temos nosso mongodb sendo executado na porta 2701
 
 Abra seu Compass e se conecte ao seu localhost na porta 27017, feito isso, terá acesso ao seu banco de dados, com sua coleção de Datasets já populadas.
 
-
 ![image info](./images/compass.png)# mongodb-for-datascience
+
+# Gerando a imagem e executando o container de forma rápida usando o REPO
+
+```
+docker build -t mongo-teste .
+docker run -p 27017:27017 -i -t mongo-teste --bind_ip_all
+```
+
+# Executando atráves do Docker Hub (Imagem Pronta com os Datasets fixos)
+
+```
+docker pull lfmaker/mongodb-for-datascience
+docker run -p 27017:27017 -i -t lfmaker/mongodb-for-datascience --bind_ip_all
+```
